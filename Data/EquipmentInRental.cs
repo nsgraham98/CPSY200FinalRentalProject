@@ -11,6 +11,7 @@ namespace CPSY200FinalRentalProject.Data
     {
         int rentalId;
         int equipmentId;
+        bool isReturned;
 
         public EquipmentInRental(int rentalId, int equipmentId)
         {

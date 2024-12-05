@@ -14,6 +14,7 @@ namespace CPSY200FinalRentalProject.Data
         static List<Equipment> EquipmentList = new List<Equipment>();
         static List<Rental> RentalList = new List<Rental>();
         static List<EquipmentInRental> EqInRentalList = new List<EquipmentInRental>();
+        static List<Category> CategoryList = new List<Category>();
 
         static string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         static string dbPath = Path.Combine(baseDirectory, "village_rental_system.db");
@@ -26,6 +27,7 @@ namespace CPSY200FinalRentalProject.Data
             LoadEquipmentFromDB();
             LoadRentalFromDB();
             LoadEquipmentInRentalFromDB();
+            LoadCategoryFromDB();
         }
 
         public DBHandler(string loadType)
@@ -45,6 +47,10 @@ namespace CPSY200FinalRentalProject.Data
             if (loadType.ToLower() == "equipmentinrental")
             {
                 LoadEquipmentInRentalFromDB();
+            }
+            if (loadType.ToLower() == "category")
+            {
+                LoadCategoryFromDB();
             }
         }
 
@@ -80,7 +86,7 @@ namespace CPSY200FinalRentalProject.Data
         //}
 
         // LOAD DB METHODS
-        public List<Customer> LoadCustomerFromDB()
+        public List<Customer> LoadCustomersFromDB()
         {
             // CreateTableDB();
             CustomerList.Clear();
@@ -139,7 +145,7 @@ namespace CPSY200FinalRentalProject.Data
             return EquipmentList;
         }
 
-        public List<Rental> LoadRentalFromDB()
+        public List<Rental> LoadRentalsFromDB()
         {
             // CreateTableDB();
             RentalList.Clear();
@@ -167,7 +173,7 @@ namespace CPSY200FinalRentalProject.Data
             return RentalList;
         }
 
-        public List<EquipmentInRental> LoadEquipmentInRentalFromDB()
+        public List<EquipmentInRental> LoadEquipmentInRentalsFromDB()
         {
             // CreateTableDB();
             EqInRentalList.Clear();
@@ -191,6 +197,32 @@ namespace CPSY200FinalRentalProject.Data
             }
             connection.Close();
             return EqInRentalList;
+        }
+
+        public List<Category> LoadCategoriesFromDB()
+        {
+            // CreateTableDB();
+            CategoryList.Clear();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+            connection.Open();
+            string sql = "Select * from category";
+            SQLiteCommand cmd = new SQLiteCommand(sql, connection);
+            using (cmd)
+            {
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int categoryId = reader.GetInt32(0);
+                        string name = reader.GetString(1);
+
+                        Category category = new Category(categoryId, name);
+                        CategoryList.Add(category);
+                    }
+                }
+            }
+            connection.Close();
+            return CategoryList;
         }
 
         // gets next available ID from specified table
@@ -285,6 +317,22 @@ namespace CPSY200FinalRentalProject.Data
             }
             connection.Close();
         }
+
+        public void InsertCategory(int categoryId, string name)
+        {
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+            connection.Open();
+            string sql = $"INSERT INTO category VALUES(@catId, @catName)";
+            SQLiteCommand cmd = new SQLiteCommand(sql, connection);
+            using (cmd)
+            {
+                cmd.Parameters.AddWithValue("@catId", categoryId);
+                cmd.Parameters.AddWithValue("@catName", name);
+                cmd.ExecuteNonQuery();
+            }
+            connection.Close();
+        }
+
 
         // UPDATE DB METHODS
         public static string UpdateCustomerDB(int customerId, string lastName, string firstName, string phone, string email, bool isBanned)
@@ -400,6 +448,33 @@ namespace CPSY200FinalRentalProject.Data
                 return e.Message;
             }
         }
+
+        public static string UpdateCategoryDB(int categoryId, string name)
+        {
+            try
+            {
+                using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+                {
+                    connection.Open();
+                    string sql = "UPDATE category SET CategoryId=@catId, Name=@catName WHERECategoryId=@catId AND Name=@catName";
+
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@catId", categoryId);
+                        cmd.Parameters.AddWithValue("@catName", name);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                    connection.Close();
+                }
+                return "Updated Successfully";
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+
 
         public string DeleteEquipmentDB(int equipmentId, string category, string name, string description, double rentalCost)
         {
