@@ -1,4 +1,5 @@
-﻿namespace CPSY200FinalRentalProject
+﻿using CPSY200FinalRentalProject.Data;
+namespace CPSY200FinalRentalProject
 {
     public partial class App : Application
     {
@@ -7,6 +8,8 @@
             InitializeComponent();
 
             MainPage = new MainPage();
+
+            DBHandler.InitializeDatabase();
         }
     }
 }
