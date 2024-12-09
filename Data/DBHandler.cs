@@ -23,18 +23,18 @@ namespace CPSY200FinalRentalProject.Data
         public DBHandler()
         {
             //CreateTableDB();
-            LoadCustomerFromDB();
+            LoadCustomersFromDB();
             LoadEquipmentFromDB();
-            LoadRentalFromDB();
-            LoadEquipmentInRentalFromDB();
-            LoadCategoryFromDB();
+            LoadRentalsFromDB();
+            LoadEquipmentInRentalsFromDB();
+            LoadCategoriesFromDB();
         }
 
         public DBHandler(string loadType)
         {
             if (loadType.ToLower() == "customer")
             {
-                LoadCustomerFromDB();
+                LoadCustomersFromDB();
             }
             if (loadType.ToLower() == "equipment")
             {
@@ -42,15 +42,15 @@ namespace CPSY200FinalRentalProject.Data
             }
             if (loadType.ToLower() == "rental")
             {
-                LoadRentalFromDB();
+                LoadRentalsFromDB();
             }
             if (loadType.ToLower() == "equipmentinrental")
             {
-                LoadEquipmentInRentalFromDB();
+                LoadEquipmentInRentalsFromDB();
             }
             if (loadType.ToLower() == "category")
             {
-                LoadCategoryFromDB();
+                LoadCategoriesFromDB();
             }
         }
 
@@ -130,7 +130,7 @@ namespace CPSY200FinalRentalProject.Data
                     while (reader.Read())
                     {
                         int equipmentId = reader.GetInt32(0);
-                        string category = reader.GetString(1);
+                        int category = reader.GetInt32(1);
                         string name = reader.GetString(2);
                         string description = reader.GetString(3);
                         double rentalCost = reader.GetDouble(4);
@@ -249,7 +249,7 @@ namespace CPSY200FinalRentalProject.Data
         {
             SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            int newId = GetNextId("customers", "customer_id");
+            int newId = GetNextId("customers", "customerId");
             string sql = $"INSERT into customers values(@cId, @cLastName, @cFirstName, @cPhone, @cEmail, @cIsBanned)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
@@ -269,7 +269,7 @@ namespace CPSY200FinalRentalProject.Data
         {
             SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            int newId = GetNextId("equipment", "equipment_id");
+            int newId = GetNextId("equipment", "equipmentId");
             string sql = $"INSERT INTO equipment VALUES(@eId, @eCategory, @eName, @eDescription, @eRentalCost, @eAvailability)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
@@ -289,7 +289,7 @@ namespace CPSY200FinalRentalProject.Data
         {
             SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            int newId = GetNextId("rentals", "rental_id");
+            int newId = GetNextId("rentals", "rentalId");
             string sql = $"INSERT INTO rentals VALUES(@rId, @rStartDate, @rEndDate, @rCustomerId)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
@@ -303,7 +303,7 @@ namespace CPSY200FinalRentalProject.Data
             connection.Close();
         }
 
-        public void InsertEquipmentInRental(int rentalId, int equipmentId)
+        public void InsertEquipmentInRentalDB(int rentalId, int equipmentId)
         {
             SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
@@ -318,15 +318,16 @@ namespace CPSY200FinalRentalProject.Data
             connection.Close();
         }
 
-        public void InsertCategory(int categoryId, string name)
+        public void InsertCategoryDB(string name)
         {
             SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
+            int newId = GetNextId("category", "categoryId");
             string sql = $"INSERT INTO category VALUES(@catId, @catName)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
             {
-                cmd.Parameters.AddWithValue("@catId", categoryId);
+                cmd.Parameters.AddWithValue("@catId", newId);
                 cmd.Parameters.AddWithValue("@catName", name);
                 cmd.ExecuteNonQuery();
             }
@@ -423,19 +424,20 @@ namespace CPSY200FinalRentalProject.Data
             }
         }
 
-        public static string UpdateEquipmentInRentalDB(int rentalId, int equipmentId)
+        public static string UpdateEquipmentInRentalDB(int rentalId, int equipmentId, bool isReturned)
         {
             try
             {
                 using (SQLiteConnection connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
-                    string sql = "UPDATE equipment_in_rental SET RentalId=@rentalId, EquipmentId=@equipmentId WHERE RentalId=@rentalId AND EquipmentId=@equipmentId";
+                    string sql = "UPDATE equipment_in_rental SET RentalId=@rentalId, EquipmentId=@equipmentId, IsReturned=@isReturned WHERE RentalId=@rentalId AND EquipmentId=@equipmentId AND IsReturned=@isReturned";
 
                     using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
                     {
-                        cmd.Parameters.AddWithValue("@rentalId", rentalId);
-                        cmd.Parameters.AddWithValue("@equipmentId", equipmentId);
+                        cmd.Parameters.AddWithValue("@RentalId", rentalId);
+                        cmd.Parameters.AddWithValue("@EquipmentId", equipmentId);
+                        cmd.Parameters.AddWithValue("@IsReturned", isReturned);
 
                         cmd.ExecuteNonQuery();
                     }
