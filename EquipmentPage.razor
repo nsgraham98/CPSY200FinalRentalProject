@@ -1,0 +1,128 @@
+﻿@page "/equipmentpage"
+@using CPSY200FinalRentalProject.Data
+@inject NavigationManager navManager
+
+<h3 class="heading">Equipment Manager</h3>
+<section><div class="box">
+        <h3>Search Equipment</h3>
+        <p>Search by:</p>
+        <input type="checkbox" placeholder="">
+        <label for="ID">ID</label> <br />
+        
+        <input type="checkbox" placeholder="">
+        <label for="Brand">Brand</label>
+        <select>
+            <option>Burton</option>
+        </select><br />
+        
+        <input type="checkbox" placeholder="">
+        <label for="category">Category</label>
+        <select><option>Snowboard</option></select><br />
+        
+        <input type="checkbox" placeholder="">
+        <label for="phone">Customer Phone</label>
+        <br /><br />
+
+        <input type="text" placeholder="Search by name, ID, phone, email">
+        <button>Select</button>
+        <select>
+            <option>Select Equipment</option>
+        </select>
+    </div>
+    <div class="box">
+        <h3>Equipment Information</h3>
+        <label for="id">Equipment ID</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="name">Equipment Name</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="brand">Equipment Brand</label>
+        <input type="text" placeholder="" />
+        <br/>
+        <label for="id">Equipment Category</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="id">Rental Cost / Day</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="id">Equipment Description</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="id">Status</label>
+        <input type="text" placeholder="" />
+        <br />
+
+        <button>Add New</button>
+        <button>Delete</button>
+        <button>Save</button>
+        <button>Clear</button>
+        <button>Add to Rental</button>
+    </div>
+    <div class="box">
+        <h3>Category management</h3>
+        <label>Category name</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label>Equipment</label><br />
+        <input type="text"/>
+        <br /><br />
+        <button>Add New</button>
+        <button>Delete</button>
+        <button>Save</button>
+        <button>Clear</button>
+
+    </div>
+</section>
+
+<style>
+    .heading {
+        text-align:center;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 20px;
+    }
+
+    .box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+        .box h3 {
+            font-size: 18px;
+            color: #3b5998;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .box p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .box button {
+            background-color: #F1F1F1;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        label {
+               padding-bottom: 8px;
+        }
+            .box button:hover {
+                background-color: #4c669f;
+            }
+</style>
+
+@code {
+
+}

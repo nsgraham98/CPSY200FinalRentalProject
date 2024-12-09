@@ -1,0 +1,146 @@
+﻿@page "/rentalpage"
+@using CPSY200FinalRentalProject.Data
+@inject NavigationManager navManager
+
+<h3 class="heading">RentalManager</h3>
+<section class="grid">
+    <div class="box">
+        <h3>Search Rental</h3>
+        
+        <input type="checkbox" placeholder="Order#">
+        <label for="order">Order#</label><br />
+        
+        <input type="checkbox" placeholder="Customer ID">
+        <label for="ID">Customer ID</label>
+        
+        <input type="checkbox" placeholder="Customer Email">
+        <label for="email">Customer Email</label><br />
+        
+        <input type="checkbox" placeholder="Equipment ID">
+        <label for="equipmentID">Equipment ID</label>
+        
+        <input type="checkbox" placeholder="Customer Phone">
+        <label for="phone">Customer Phone</label>
+        <br /><br />
+
+        <input type="text" placeholder="Search by name, ID, phone, email">
+        <button>Select</button><br />
+        <select>
+            <option>Select Customer</option>
+        </select>
+    </div>
+    <div class="box">
+        <h3>Generate Report</h3>
+        <p>Parameters</p>
+        <label>Cust.ID</label>
+        <input type="text" placeholder="">
+
+        <label>Brand</label>
+        <input type="hidden" placeholder="">
+        <select>
+            <option>Burton</option>
+            <option></option>
+        </select> <br />
+
+        <label>Equip.ID</label>
+        <input type="text" placeholder="">
+
+        <label>Category</label>
+        <select>
+            <option>Snowboard</option>
+            <option></option>
+        </select>
+        <br />
+
+        <label>Start DATE</label>
+        <input type="date" placeholder="Oct 1, 2024">
+
+
+        <label>Order Status</label>
+        <input type="hidden" placeholder="">
+        <select>
+            <option>Overdue</option>
+            <option>Active</option>
+            <option>Inactive</option>
+        </select><br />
+      
+
+        <label>End Date</label>
+        <input type="date" placeholder="Nov1,2024"><br />
+
+        <button id="generate" type="submit">Genetate</button>
+    </div>
+    <div class="info-container">
+        <div class="box">
+            <h3>Rental Information</h3>
+            <label for="ID"><b>ID</b></label>
+            <input type="text" placeholder="">
+            <label for="Name"><b>Name</b></label>
+            <input type="text" placeholder=""><br/>
+            <label for="status"><b>Status</b></label>
+            <input type="text" placeholder=""><br />
+            <label for="Phone"><b>Phone</b></label>
+            <input type="text" placeholder="">
+            <label for="email"><b>Email</b></label>
+            <input type="text" placeholder="">
+        </div>
+        <div class="box">
+           
+        </div>
+    </div>
+
+</section>
+
+<style>    
+    .heading {
+        text-align: center;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 20px;
+    }
+
+    .box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+    }
+
+        .box h3 {
+            font-size: 18px;
+            color: #3b5998;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .box p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .box button {
+            background-color: #F1F1F1;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        label{
+            padding-bottom:8px;
+        }
+        .box button:hover {
+                background-color: #4c669f;
+        }
+</style>
+
+@code {
+
+}
