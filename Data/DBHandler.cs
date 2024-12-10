@@ -24,6 +24,7 @@ namespace CPSY200FinalRentalProject.Data
         // Database file path (should not be a connection string)
         static string dbPath = Path.Combine(FileSystem.AppDataDirectory, "village_rental_system.db");
         static SQLiteConnection database;
+        static string connectionString = $"Data Source={dbPath}";
 
         public static SQLiteConnection GetDatabaseConnection()
         {
@@ -48,6 +49,7 @@ namespace CPSY200FinalRentalProject.Data
 
             // Ensure the connection to the database is available
             GetDatabaseConnection();
+            database.Close();
         }
 
 
@@ -90,8 +92,8 @@ namespace CPSY200FinalRentalProject.Data
         {
             // CreateTableDB();
             CustomerList.Clear();
-            //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+            //SQLiteConnection connection = GetDatabaseConnection();
             connection.Open();
             string sql = "Select * from customers";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
@@ -120,8 +122,8 @@ namespace CPSY200FinalRentalProject.Data
         {
             // CreateTableDB();
             EquipmentList.Clear();
-            //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
+            //SQLiteConnection connection = GetDatabaseConnection();
             connection.Open();
             string sql = "Select * from equipment";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
@@ -132,11 +134,11 @@ namespace CPSY200FinalRentalProject.Data
                     while (reader.Read())
                     {
                         int equipmentId = reader.GetInt32(0);
-                        int category = reader.GetInt32(1);
-                        string name = reader.GetString(2);
-                        string description = reader.GetString(3);
-                        double rentalCost = reader.GetDouble(4);
-                        string availability = reader.GetString(5);
+                        string name = reader.GetString(1);
+                        string description = reader.GetString(2);
+                        double rentalCost = reader.GetDouble(3);
+                        string availability = reader.GetString(4);
+                        int category = reader.GetInt32(5);
 
                         Equipment equipment = new Equipment(equipmentId, category, name, description, rentalCost, availability);
                         EquipmentList.Add(equipment);
@@ -152,7 +154,7 @@ namespace CPSY200FinalRentalProject.Data
             // CreateTableDB();
             RentalList.Clear();
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
             string sql = "Select * from rentals";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
@@ -181,7 +183,7 @@ namespace CPSY200FinalRentalProject.Data
             // CreateTableDB();
             EqInRentalList.Clear();
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
             string sql = "Select * from equipment_in_rental";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
@@ -203,12 +205,12 @@ namespace CPSY200FinalRentalProject.Data
             return EqInRentalList;
         }
 
-        public List<Category> LoadCategoriesFromDB()
+        public List<Category> LoadCategoriesFromDB()    
         {
             // CreateTableDB();
             CategoryList.Clear();
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
             string sql = "Select * from category";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
@@ -232,20 +234,21 @@ namespace CPSY200FinalRentalProject.Data
 
         // gets next available ID from specified table
         // used for insert commands
-        public int GetNextId(string tableName, string idColumnName)
+        public int GetNextId(string tableName, string idColumnName, SQLiteConnection connection)
         {
-            int res = 0;
-            using (//SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection())
+            // Ensure the connection is open before executing the command
+            if (connection.State != System.Data.ConnectionState.Open)
             {
                 connection.Open();
-                string selectQuery = $"Select MAX({idColumnName}) AS MaxId from {tableName}";
-                using (SQLiteCommand selectCmd = new SQLiteCommand(selectQuery, connection))
-                {
-                    var result = selectCmd.ExecuteScalar();
-                    return result == DBNull.Value ? 1 : Convert.ToInt32(result) + 1;
-                    connection.Close();
-                }
+            }
+
+            // SQL to get the max id from the table
+            string selectQuery = $"SELECT MAX({idColumnName}) AS MaxId FROM {tableName}";
+
+            using (SQLiteCommand selectCmd = new SQLiteCommand(selectQuery, connection))
+            {
+                var result = selectCmd.ExecuteScalar();
+                return result == DBNull.Value ? 1 : Convert.ToInt32(result) + 1;
             }
         }
 
@@ -253,31 +256,40 @@ namespace CPSY200FinalRentalProject.Data
         // INSERT DB METHODS
         public void InsertCustomerDB(string LastName, string FirstName, string Phone, string Email)
         {
-            //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
-            connection.Open();
-            int newId = GetNextId("customers", "customerId");
-            string sql = $"INSERT into customers values(@cId, @cLastName, @cFirstName, @cPhone, @cEmail, @cIsBanned)";
-            SQLiteCommand cmd = new SQLiteCommand(sql, connection);
-            using (cmd)
+            // Get a new database connection
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
-                cmd.Parameters.AddWithValue("@cId", newId);
-                cmd.Parameters.AddWithValue("@cLastName", LastName);
-                cmd.Parameters.AddWithValue("@cFirstName", FirstName);
-                cmd.Parameters.AddWithValue("@cPhone", Phone);
-                cmd.Parameters.AddWithValue("@cEmail", Email);
-                cmd.Parameters.AddWithValue("@cIsBanned", false);
-                cmd.ExecuteNonQuery();
+                connection.Open();
+                int newId = GetNextId("customers", "customerId", connection);
+
+                // Define the SQL command for inserting data
+                string sql = $"INSERT into customers values(@cId, @cLastName, @cFirstName, @cPhone, @cEmail, @cIsBanned)";
+
+                // Create the command
+                //SQLiteCommand cmd = new SQLiteCommand(sql, connection);
+
+                // Add parameters and execute the command
+                using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
+                {
+                    cmd.Parameters.AddWithValue("@cId", newId);
+                    cmd.Parameters.AddWithValue("@cLastName", LastName);
+                    cmd.Parameters.AddWithValue("@cFirstName", FirstName);
+                    cmd.Parameters.AddWithValue("@cPhone", Phone);
+                    cmd.Parameters.AddWithValue("@cEmail", Email);
+                    cmd.Parameters.AddWithValue("@cIsBanned", false);
+
+                    // Execute the command
+                    cmd.ExecuteNonQuery();
+                }
             }
-            connection.Close();
         }
 
         public void InsertEquipmentDB(int category, string name, string description, double rentalCost, string availability)
         {
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            int newId = GetNextId("equipment", "equipmentId");
+            int newId = GetNextId("equipment", "equipmentId", connection);
             string sql = $"INSERT INTO equipment VALUES(@eId, @eCategory, @eName, @eDescription, @eRentalCost, @eAvailability)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
@@ -296,9 +308,9 @@ namespace CPSY200FinalRentalProject.Data
         public void InsertRentalDB(DateTime startDate, DateTime endDate, int customerId)
         {
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            int newId = GetNextId("rentals", "rentalId");
+            int newId = GetNextId("rentals", "rentalId", connection);
             string sql = $"INSERT INTO rentals VALUES(@rId, @rStartDate, @rEndDate, @rCustomerId)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
@@ -315,7 +327,7 @@ namespace CPSY200FinalRentalProject.Data
         public void InsertEquipmentInRentalDB(int rentalId, int equipmentId)
         {
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
             string sql = $"INSERT INTO equipment_in_rental VALUES(@eirRentalId, @eirEquipmentId)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
@@ -331,9 +343,9 @@ namespace CPSY200FinalRentalProject.Data
         public void InsertCategoryDB(string name)
         {
             //SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection();
+            SQLiteConnection connection = new SQLiteConnection(connectionString);
             connection.Open();
-            int newId = GetNextId("category", "categoryId");
+            int newId = GetNextId("category", "categoryId", connection);
             string sql = $"INSERT INTO category VALUES(@catId, @catName)";
             SQLiteCommand cmd = new SQLiteCommand(sql, connection);
             using (cmd)
@@ -352,7 +364,7 @@ namespace CPSY200FinalRentalProject.Data
             try
             {
                 using (//SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection())
+            SQLiteConnection connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
                     string sql = "UPDATE customers SET LastName=@lastName, FirstName=@firstName, Phone=@phone, Email=@email, IsBanned=@isBanned WHERE CustomerId=@customerId";
@@ -383,7 +395,7 @@ namespace CPSY200FinalRentalProject.Data
             try
             {
                 using (//SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection())
+            SQLiteConnection connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
                     string sql = "UPDATE equipment SET Category=@category, Name=@name, Description=@description, RentalCost=@rentalCost WHERE EquipmentId=@equipmentId";
@@ -414,7 +426,7 @@ namespace CPSY200FinalRentalProject.Data
             try
             {
                 using (//SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection())
+            SQLiteConnection connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
                     string sql = "UPDATE rentals SET StartDate=@startDate, EndDate=@endDate, CustomerId=@customerId WHERE RentalId=@rentalId";
@@ -443,7 +455,7 @@ namespace CPSY200FinalRentalProject.Data
             try
             {
                 using (//SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection())
+            SQLiteConnection connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
                     string sql = "UPDATE equipment_in_rental SET RentalId=@rentalId, EquipmentId=@equipmentId, IsReturned=@isReturned WHERE RentalId=@rentalId AND EquipmentId=@equipmentId AND IsReturned=@isReturned";
@@ -471,7 +483,7 @@ namespace CPSY200FinalRentalProject.Data
             try
             {
                 using (//SQLiteConnection connection = new SQLiteConnection(connectionString);
-            SQLiteConnection connection = GetDatabaseConnection())
+            SQLiteConnection connection = new SQLiteConnection(connectionString))
                 {
                     connection.Open();
                     string sql = "UPDATE category SET CategoryId=@catId, Name=@catName WHERECategoryId=@catId AND Name=@catName";
@@ -499,7 +511,7 @@ namespace CPSY200FinalRentalProject.Data
             try
             {
                 //SQLiteConnection connection = new SQLiteConnection(connectionString);
-                SQLiteConnection connection = GetDatabaseConnection();
+                SQLiteConnection connection = new SQLiteConnection(connectionString);
                 connection.Open();
                 string sql = "DELETE FROM equipment WHERE EquipmentId=@equipmentId";
                 SQLiteCommand cmd = new SQLiteCommand(sql, connection);

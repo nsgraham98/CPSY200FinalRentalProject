@@ -13,14 +13,14 @@ namespace CPSY200FinalRentalProject.Data
         // maybe change return
         public static string AddEquipmentInRental(int rentalId, int equipmentId)
         {
-            DBHandler db = new DBHandler();
+            DBHandler db = new DBHandler("equipmentinrental");
             db.InsertEquipmentInRentalDB(rentalId, equipmentId);
             return "Added Successfully";
         }
 
         public static List<EquipmentInRental> GetEquipmentInRentals()
         {
-            DBHandler db = new DBHandler();
+            DBHandler db = new DBHandler("equipmentinrental");
             //List<Category> categories = new List<Category>();
             eqInRental = db.LoadEquipmentInRentalsFromDB();
             return eqInRental;

@@ -2,8 +2,219 @@
 @using CPSY200FinalRentalProject.Data
 @inject NavigationManager navManager
 
-<h3>RentalManager</h3>
+<h3 class="heading">RentalManager</h3>
+<section class="grid">
+    <div class="box">
+        <h3>Search Rental</h3>
+
+        <input type="checkbox" @bind="sCustomerId">
+        <label for="custID">Customer ID</label><br />
+
+        <input type="checkbox" @bind="sCustomerPhone">
+        <label for="custPhone">Customer Phone</label><br />
+
+        <input type="checkbox" @bind="sCustomerEmail">
+        <label for="email">Customer Email</label><br />
+
+        <input type="checkbox" @bind="sEquipmentId">
+        <label for="equipmentId">Equipment ID</label>
+
+        <br /><br />
+        <input type="text" @bind="searchField">
+        <button @onclick="SearchRentals">Search</button><br />
+
+        <select @onchange="PopulateRentalFields">
+            @if (foundList.Any())
+            {
+                <option disabled selected="selected">Select Rental</option>
+                @foreach (Rental rental in foundList)
+                {
+                    <option value="@rental.RentalId">@rental.RentalId : @rental.StartDate - @rental.EndDate</option>
+                }
+            }
+            else
+            {
+                <option disabled>No Rentals Found</option>
+            }
+        </select>
+    </div>
+    <div class="box">
+        <h3>Generate Report</h3>
+        <p>Parameters</p>
+        <label>Cust.ID</label>
+        <input type="text" placeholder="">
+        <label>Brand</label>
+        <input type="hidden" placeholder="">
+        <select>
+            <option>Burton</option>
+            <option></option>
+        </select> <br />
+        <label>Equip.ID</label>
+        <input type="text" placeholder="">
+        <label>Category</label>
+        <select>
+            <option>Snowboard</option>
+            <option></option>
+        </select>
+        <br />
+        <label>Start DATE</label>
+        <input type="date" placeholder="Oct 1, 2024">
+        <label>Order Status</label>
+        <input type="hidden" placeholder="">
+        <select>
+            <option>Overdue</option>
+            <option>Active</option>
+            <option>Inactive</option>
+        </select><br />
+
+        <label>End Date</label>
+        <input type="date" placeholder="Nov1,2024"><br />
+        <button id="generate" type="submit">Genetate</button>
+    </div>
+    <div class="info-container">
+        <div class="box">
+            <h3>Rental Information</h3>
+            <label for="ID"><b>ID</b></label>
+            <input type="text" @bind="rentalId">
+
+            <label for="Name"><b>Name</b></label>
+            <input type="text" @bind="startDate"><br />
+
+            <label for="status"><b>Status</b></label>
+            <input type="text" @bind="endDate"><br />
+
+            <label for="Phone"><b>Phone</b></label>
+            <input type="text" @bind="customerId" />
+
+            <label for="email"><b>Email</b></label>
+            <input type="text" @bind="customerInfo.Email">
+
+            <label for="email"><b>Phone</b></label>
+            <input type="text" @bind="customerInfo.Phone">
+        </div>
+        <div class="box">
+        </div>
+    </div>
+</section>
+<style>
+    .heading {
+        text-align: center;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 20px;
+    }
+    .box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    }
+        .box h3 {
+            font-size: 18px;
+            color: #3b5998;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .box p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .box button {
+            background-color: #F1F1F1;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        label{
+            padding-bottom:8px;
+        }
+        .box button:hover {
+                background-color: #4c669f;
+        }
+</style>
 
 @code {
+    [Parameter]
+    public int RentalId { get; set; }
+    [Parameter]
+    public DateTime? StartDate { get; set; }
+    [Parameter]
+    public DateTime? EndDate { get; set; }
+    [Parameter]
+    public int CustomerId { get; set; }
+    [Parameter]
+    public List<Rental> FoundList { get; set; }
+
+    Rental rental;
+    List<Rental> rentalList = RentalManager.GetRentals();
+    int rentalId = 0;
+    DateTime? startDate = null;
+    DateTime? endDate = null;
+    int customerId = 0;
+    Customer? customerInfo = new Customer();
+    string message;
+
+    private string searchField = "";
+    private bool sCustomerId;
+    private bool sEquipmentId;
+    private bool sCustomerEmail;
+    private bool sCustomerPhone;
+    private List<Rental> foundList = new List<Rental>();
+
+    protected async override void OnInitialized()
+    {
+        base.OnInitialized();
+        rentalId = RentalId;
+        if (rentalId > 0)
+        {
+            startDate = StartDate;
+            endDate = EndDate;
+            customerId = CustomerId;
+
+            foundList = FoundList;
+
+            this.StateHasChanged();
+        }
+    }
+
+    public void PopulateRentalFields(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value.ToString(), out int selectedRentalId))
+        {
+            Rental selectedRental = foundList.FirstOrDefault(c => c.RentalId == selectedRentalId);
+            if (selectedRental != null)
+            {
+                rentalId = selectedRental.RentalId;
+                customerId = selectedRental.CustomerId;
+                startDate = selectedRental.StartDate;
+                endDate = selectedRental.EndDate;
+                customerInfo = CustomerManager.GetCustomerFromId(selectedRental.CustomerId);
+
+                StateHasChanged(); 
+            }
+        }
+    }
+
+    public void SearchRentals()
+    {
+        foundList = RentalManager.SearchRentals(sCustomerId, sEquipmentId, sCustomerPhone, sCustomerEmail, searchField);
+        StateHasChanged();
+    }
+
+    public void ClearFields()
+    {
+        rentalId = 0;
+        startDate = null;
+        endDate = null;
+        customerId = 0;
+        StateHasChanged();
+    }
 
 }

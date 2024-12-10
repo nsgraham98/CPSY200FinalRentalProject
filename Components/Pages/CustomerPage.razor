@@ -2,8 +2,230 @@
 @using CPSY200FinalRentalProject.Data
 @inject NavigationManager navManager
 
-<h3>CustomerPage</h3>
+<h3 class="heading">Customer Manager</h3>
+<section class="grid">
+    <div class="box">
+        <h3>Search Customer</h3>
+        <p>Search by:</p>
+        <input type="checkbox" @bind="sCustomerId"/>
+        <label for="ID">ID</label> <br />
+        <input type="checkbox"@bind="sLastName">
+        <label for="name">Last Name</label><br />
+        <input type="checkbox" @bind="sPhone">
+        <label for="phone">Phone</label><br />
+        <input type="checkbox" @bind="sEmail">
+        <label for="Email">Email</label>
+        <br /><br />
+        <input type="text" placeholder="Search by name, ID, phone, email" @bind="searchField">
+        <button @onclick="SearchCustomers">Search</button>
+
+        <select @onchange="PopulateCustomerFields">
+            @if (foundList.Any())
+            {
+                <option disabled selected="selected">Select Customer</option>
+                @foreach (Customer customer in foundList)
+                {
+                    <option value="@customer.CustomerId">@customer.FirstName @customer.LastName</option>
+                }
+            }
+            else
+            {
+                <option disabled>No Customers Found</option>
+            }
+        </select>
+    </div>
+    <div class="box">
+
+        <h3>Customer Information</h3>
+            <label for="id">Customer ID</label>
+            <input type="text" @bind="customerId" readonly/>
+        <br />
+            <label for="name">Customer First Name</label>
+        <input type="text" @bind="firstName" />
+        <br />
+            <label for="brand">Customer Last Name</label>
+        <input type="text"  @bind="lastName" />
+        <br />
+            <label for="phpne">Customer Phone</label>
+        <input type="text" @bind="phone" />
+        <br />
+            <label for="email">Customer Email</label>
+        <input type="text" @bind="email" />
+        <br />
+            <label for="status">Customer Status</label>
+        <input type="text" @bind="isBanned" />
+        <br />
+
+        <button type="submit" @onclick="AddNewCustomerInfo">Add New</button>
+        @* <button>Delete</button> *@
+        <button type="submit" @onclick="EditCustomerInfo">Save</button>
+        <button type="reset" @onclick="ClearFields">Clear</button>
+        <button @onclick="AddCustomerToRental">Add to Rental</button>
+    </div>
+
+</section>
+<style>
+
+    .heading {
+        text-align: center;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 20px;
+    }
+    .box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    }
+        .box h3 {
+            font-size: 18px;
+            color: #3b5998;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .box p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .box button {
+            background-color: #F1F1F1;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        label {
+             padding-bottom: 8px;
+        }
+        .box button:hover {
+         background-color: #4c669f;
+</style>
 
 @code {
 
+    [Parameter]
+    public int CustomerId { get; set; }
+    [Parameter]
+    public string LastName { get; set; }
+    [Parameter]
+    public string FirstName { get; set; }
+    [Parameter]
+    public string Phone { get; set; }
+    [Parameter]
+    public string Email { get; set; }
+    [Parameter]
+    public bool IsBanned { get; set; }
+    [Parameter]
+    public List<Customer> FoundList { get; set; }
+
+    Customer customer;
+    List<Customer> customerList = CustomerManager.GetCustomers();
+    int customerId =0;
+    string lastName ="";
+    string firstName="";
+    string phone="";
+    string email="";
+    bool isBanned=false;
+    string message;
+
+    private string searchField = "";
+    private bool sCustomerId;
+    private bool sLastName = false;
+    private bool sPhone = false;
+    private bool sEmail = false;
+    private List<Customer> foundList = new List<Customer>();
+
+    protected async override void OnInitialized()
+    {
+        base.OnInitialized();
+        customerId = CustomerId;
+        if (customerId > 0)
+        {
+            firstName = FirstName;
+            lastName = LastName;
+            phone = Phone;
+            email = Email;
+            isBanned = IsBanned;
+
+            foundList = FoundList;
+
+            this.StateHasChanged();
+        }
+    }
+
+    public void PopulateCustomerFields(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value.ToString(), out int selectedCustomerId))
+        {
+            Customer selectedCustomer = foundList.FirstOrDefault(c => c.CustomerId == selectedCustomerId);
+            if (selectedCustomer != null)
+            {
+                customerId = selectedCustomer.CustomerId;
+                firstName = selectedCustomer.FirstName;
+                lastName = selectedCustomer.LastName;
+                phone = selectedCustomer.Phone;
+                email = selectedCustomer.Email;
+                isBanned = selectedCustomer.IsBanned;
+                StateHasChanged(); // Ensure UI updates when customer is selected
+            }
+        }
+    }
+
+    public void SearchCustomers()
+    {
+        foundList = CustomerManager.SearchCustomers(sCustomerId, sLastName, sPhone, sEmail, searchField);
+        StateHasChanged();
+    }
+
+    public void ClearFields()
+    {
+        customerId = 0;
+        firstName = "";
+        lastName = "";
+        phone = "";
+        email = "";
+        isBanned = false;
+        StateHasChanged();
+    }
+
+    public void AddCustomerToRental()
+    {
+        Customer customer = new Customer(customerId, firstName, lastName, phone, email, isBanned);
+        navManager.NavigateTo($"createrentalfromcustomer/{customer.CustomerId}/{customer.FirstName}/{customer.LastName}/{customer.Phone}/{customer.Email}/{customer.IsBanned}");
+    }
+
+    public async void AddNewCustomerInfo()
+    {
+        if (CustomerId > 0)
+        {
+            App.Current.MainPage.DisplayAlert("Error", "Existing customer currently selected", "OK");
+        }
+        else
+        {
+            message = CustomerManager.AddCustomer(lastName, firstName, phone, email);
+            App.Current.MainPage.DisplayAlert("Saved", "Customer Added", "OK");
+        }     
+    }
+
+    public async void EditCustomerInfo()
+    {
+        if (customerId > 0)
+        {
+            CustomerManager.EditCustomer(customerId, lastName, firstName, phone, email, isBanned);
+            App.Current.MainPage.DisplayAlert("Saved", "Customer Edited", "OK");
+            StateHasChanged();
+        }
+        else
+        {
+            App.Current.MainPage.DisplayAlert("Error", "No customer selected", "OK");
+        }
+        
+    }
 }

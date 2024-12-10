@@ -2,8 +2,260 @@
 @using CPSY200FinalRentalProject.Data
 @inject NavigationManager navManager
 
-<h3>EquipmentPage</h3>
+<h3 class="heading">Equipment Manager</h3>
+<section>
+    <div class="box">
+        <h3>Search Equipment</h3>
+        <p>Search by:</p>
+        <input type="checkbox" @bind="sEquipmentId">
+        <label for="ID">ID</label> <br />
+        <input type="checkbox" @bind="sName">
+        <label for="Name">Name</label> <br />
+        <input type="checkbox" @bind="sCategory">
+        <label for="category">Category</label>
+        <select @onchange="AddCatSearchField">
+            @foreach (Category cat in categoryList)
+            {
+                <option value="@cat.Name">@cat.Name</option>
+            } 
+        </select>
+        <br />
 
+        <br /><br />
+        <input type="text" placeholder="Search by Id, Category, Name" @bind="searchField">
+        <button @onclick="SearchEquipment">Search</button>
+
+        <select @onchange="PopulateEquipmentFields">
+            @if (foundList.Any())
+            {
+                <option disabled selected="selected">Select Equipment</option>
+                @foreach (Equipment equipment in foundList)
+                {
+                    <option value="@equipment.EquipmentId">@equipment.EquipmentId : @equipment.Name</option>
+                }
+            }
+            else
+            {
+                <option disabled>No Equipment Found</option>
+            }
+        </select>
+    </div>
+    <div class="box">
+        <h3>Equipment Information</h3>
+            <label for="id">Equipment ID</label>
+            <input type="text" @bind="equipmentId" />
+        <br />
+            <label for="name">Equipment Name</label>
+            <input type="text" @bind="name" />
+        <br />
+            <label for="id">Equipment Category</label>
+            <input type="text" @bind="categoryName" />
+        <br />
+            <label for="id">Rental Cost / Day</label>
+            <input type="text" @bind="rentalCost" />
+        <br />
+            <label for="id">Equipment Description</label>
+            <input type="text" @bind="description" />
+        <br />
+            <label for="id">Availability</label>
+            <input type="text" @bind="availability" />
+        <br />
+        <button type="submit" @onclick="AddNewEquipmentInfo">Add New</button>
+        @* <button>Delete</button> *@
+        <button type="submit" @onclick="EditEquipmentInfo">Save</button>
+        <button @onclick="ClearFields">Clear</button>
+    </div>
+    @* <div class="box">
+        <h3>Category management</h3>
+        <label>Category name</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label>Equipment</label><br />
+        <input type="text" />
+        <br /><br />
+        <button>Add New</button>
+        <button>Delete</button>
+        <button>Save</button>
+        <button>Clear</button>
+    </div> *@
+</section>
+<style>
+    .heading {
+        text-align:center;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 20px;
+    }
+    .box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+        .box h3 {
+            font-size: 18px;
+            color: #3b5998;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .box p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .box button {
+            background-color: #F1F1F1;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        label {
+               padding-bottom: 8px;
+        }
+            .box button:hover {
+                background-color: #4c669f;
+            }
+</style>
 @code {
 
+    [Parameter]
+    public int EquipmentId { get; set; }
+    [Parameter]
+    public int Category { get; set; }
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public string Description { get; set; }
+    [Parameter]
+    public double RentalCost { get; set; }
+    [Parameter]
+    public string Availability { get; set; }
+    [Parameter]
+    public List<Equipment> FoundList { get; set; }
+
+    Equipment equipment;
+    List<Equipment> equipmentList = EquipmentManager.GetEquipment();
+    int equipmentId = 0;
+    string categoryName;
+    int categoryId;
+    string name = "";
+    string description = "";
+    double rentalCost = 0;
+    string availability;
+    string message;
+
+    private string searchField = "";
+    private bool sEquipmentId;
+    private bool sName = false;
+    private bool sCategory = false;
+    private List<Equipment> foundList = new List<Equipment>();
+    private List<Category> categoryList = new List<Category>();
+
+    protected async override void OnInitialized()
+    {
+        base.OnInitialized();
+        equipmentId = EquipmentId;
+        if (equipmentId > 0)
+        {
+            categoryName = CategoryManager.GetCategoryName(Category);
+            name = Name;
+            description = Description;
+            rentalCost = RentalCost;
+            availability = Availability;
+
+            foundList = FoundList;
+
+            this.StateHasChanged();
+        }
+
+        categoryList = CategoryManager.GetCategories();
+    }
+
+    public void PopulateEquipmentFields(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value.ToString(), out int selectedEquipmentId))
+        {
+            Equipment selectedEquipment = foundList.FirstOrDefault(c => c.EquipmentId == selectedEquipmentId);
+            if (selectedEquipment != null)
+            {
+                equipmentId = selectedEquipment.EquipmentId;
+                categoryName = CategoryManager.GetCategoryName(selectedEquipment.Category);
+                name = selectedEquipment.Name;
+                description = selectedEquipment.Description;
+                rentalCost = selectedEquipment.RentalCost;
+                availability = selectedEquipment.Availability;
+                StateHasChanged(); // Ensure UI updates when customer is selected
+            }
+        }
+    }
+
+    public void SearchEquipment()
+    {
+        foundList = EquipmentManager.SearchEquipment(sEquipmentId, sName, sCategory, searchField);
+        StateHasChanged();
+    }
+
+    public void ClearFields()
+    {
+        equipmentId = 0;
+        categoryName = "";
+        name = "";
+        description = "";
+        rentalCost = 0;
+        availability = "";
+        StateHasChanged();
+    }
+
+
+
+    public async void AddNewEquipmentInfo()
+    {
+        if (equipmentId > 0)
+        {
+            App.Current.MainPage.DisplayAlert("Error", "Existing Equipment currently selected", "OK");
+        }
+        else
+        {
+            message = EquipmentManager.AddEquipment(categoryId, name, description, rentalCost, availability);
+            App.Current.MainPage.DisplayAlert("Saved", "Equipment Added", "OK");
+        }
+    }
+
+    public async void EditEquipmentInfo()
+    {
+        if (equipmentId > 0)
+        {
+            EquipmentManager.EditEquipment(equipmentId, categoryId, name, description, rentalCost, availability);
+            App.Current.MainPage.DisplayAlert("Saved", "Equipment Edited", "OK");
+            StateHasChanged();
+        }
+        else
+        {
+            App.Current.MainPage.DisplayAlert("Error", "No Equipment selected", "OK");
+        }
+    }
+
+    public void AddCatSearchField(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            string selectedCategoryName = e.Value.ToString();
+
+            // Find the category by its name
+            Category selectedCategory = categoryList.FirstOrDefault(c => c.Name == selectedCategoryName);
+
+            // Check if a matching category was found
+            if (selectedCategory != null)
+            {
+                searchField = selectedCategoryName;
+                // Perform actions with the selected category
+                StateHasChanged(); // Update the UI if necessary
+            }
+        }
+    }
 }
