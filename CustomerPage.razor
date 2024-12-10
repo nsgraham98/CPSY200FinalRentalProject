@@ -1,0 +1,112 @@
+﻿@page "/customerpage"
+@using CPSY200FinalRentalProject.Data
+@inject NavigationManager navManager
+
+<h3 class="heading">Customer Manager</h3>
+<section class="grid">
+    <div class="box">
+        <h3>Search Customer</h3>
+        <p>Search by:</p>
+
+        <input type="checkbox" placeholder="">
+        <label for="ID">ID</label> <br />
+
+        <input type="checkbox" placeholder="">
+        <label for="name">Last Name</label><br />
+
+        <input type="checkbox" placeholder="">
+        <label for="phone">Phone</label><br />
+  
+
+        <input type="checkbox" placeholder="">
+        <label for="Email">Email</label>
+        <br /><br />
+
+        <input type="text" placeholder="Search by name, ID, phone, email">
+        <button>Search</button>
+        <select>
+            <option>Select Customer</option>
+        </select>
+    </div>
+    <div class="box">
+        <h3>Customer Information</h3>
+        <label for="id">Customer ID</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="name">Customer First Name</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="brand">Customer Last Name</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="phpne">Customer Phone</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="email">Customer Email</label>
+        <input type="text" placeholder="" />
+        <br />
+        <label for="status">Customer Status</label>
+        <input type="text" placeholder="" />
+        <br />
+
+        <button>Add New</button>
+        <button>Delete</button>
+        <button>Save</button>
+        <button>Clear</button>
+        <button>Add to Rental</button>
+    </div>
+    
+</section>
+<style>  
+    .heading {
+        text-align: center;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: auto;
+        gap: 20px;
+    }
+
+    .box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+    }
+
+        .box h3 {
+            font-size: 18px;
+            color: #3b5998;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .box p {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .box button {
+            background-color: #F1F1F1;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        label {
+             padding-bottom: 8px;
+        }
+        .box button:hover {
+         background-color: #4c669f;
+</style>
+
+           
+
+@code {
+
+}
