@@ -189,7 +189,7 @@
                 description = selectedEquipment.Description;
                 rentalCost = selectedEquipment.RentalCost;
                 availability = selectedEquipment.Availability;
-                StateHasChanged(); // Ensure UI updates when customer is selected
+                StateHasChanged();
             }
         }
     }
@@ -246,15 +246,12 @@
         {
             string selectedCategoryName = e.Value.ToString();
 
-            // Find the category by its name
             Category selectedCategory = categoryList.FirstOrDefault(c => c.Name == selectedCategoryName);
 
-            // Check if a matching category was found
             if (selectedCategory != null)
             {
                 searchField = selectedCategoryName;
-                // Perform actions with the selected category
-                StateHasChanged(); // Update the UI if necessary
+                StateHasChanged();
             }
         }
     }
